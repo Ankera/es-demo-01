@@ -1,0 +1,10 @@
+-------------------------------------------------------------------------------
+Test set: cn.itcast.hotel.HotelDemoApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.985 s <<< FAILURE! - in cn.itcast.hotel.HotelDemoApplicationTests
+test01  Time elapsed: 0.003 s  <<< ERROR!
+java.lang.IllegalStateException: Failed to load ApplicationContext
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'restHighLevelClient' defined in cn.itcast.hotel.HotelDemoApplication: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.elasticsearch.client.RestHighLevelClient]: Factory method 'restHighLevelClient' threw exception; nested exception is java.lang.IllegalArgumentException: Illegal base64 character 2e
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.elasticsearch.client.RestHighLevelClient]: Factory method 'restHighLevelClient' threw exception; nested exception is java.lang.IllegalArgumentException: Illegal base64 character 2e
+Caused by: java.lang.IllegalArgumentException: Illegal base64 character 2e
+
