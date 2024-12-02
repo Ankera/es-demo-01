@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/hotel")
@@ -24,5 +26,10 @@ public class HotelController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @RequestMapping("/filters")
+    public Map<String, List<String>> getFilters(@RequestBody RequestParams params){
+        return hotelService.getFilters(params);
     }
 }

@@ -18,21 +18,22 @@ import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.lucene.search.function.CombineFunction;
 import org.elasticsearch.common.unit.DistanceUnit;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.filter.RequestContextFilter;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 
 @Service
 public class HotelService extends ServiceImpl<HotelMapper, Hotel> implements IHotelService {
@@ -122,4 +123,54 @@ public class HotelService extends ServiceImpl<HotelMapper, Hotel> implements IHo
         }
         return null;
     }
+
+    @Override
+    public Map<String, List<String>> getFilters(RequestParams params) {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().size(0);
+        HashMap<String, List<String>> map = new HashMap<>();
+        try {
+            this.buildBasicRequest(request, params);
+
+            this.buildAggs(request);
+
+            SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
+
+            List<String> city = this.getBuckNames(response, "cityAggs");
+            List<String> brand = this.getBuckNames(response, "brandAggs");
+            List<String> starName = this.getBuckNames(response, "starNameAggs");
+
+
+
+            map.put("city", city);
+            map.put("brand", brand);
+            map.put("starName", starName);
+
+            return map;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void buildAggs(SearchRequest request) {
+        request.source().aggregation(AggregationBuilders.terms("cityAggs").field("city").size(20));
+        request.source().aggregation(AggregationBuilders.terms("brandAggs").field("brand").size(20));
+        request.source().aggregation(AggregationBuilders.terms("starNameAggs").field("starName").size(20));
+    }
+
+    public List<String> getBuckNames(SearchResponse response, String key) {
+        List<String> infos = new ArrayList<>();
+        Aggregations aggregations = response.getAggregations();
+        Terms brandAggs = aggregations.get(key);
+        if (brandAggs == null || CollectionUtils.isEmpty(brandAggs.getBuckets())) {
+            return infos;
+        }
+        List<? extends Terms.Bucket> buckets = brandAggs.getBuckets();
+
+        for (Terms.Bucket bucket : buckets) {
+            infos.add(bucket.getKeyAsString());
+        }
+        return infos;
+    }
+
 }

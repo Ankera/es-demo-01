@@ -9,9 +9,18 @@ import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.SearchContextAggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -67,5 +76,20 @@ public class HotelDocumentTest {
         });
 
         client.bulk(request, RequestOptions.DEFAULT);
+    }
+
+    @Test
+    public void test04() throws IOException {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().size(0);
+        request.source().aggregation(AggregationBuilders.terms("brandAggs").field("brand").size(20));
+
+        SearchResponse search = client.search(request, RequestOptions.DEFAULT);
+        Aggregations aggregations = search.getAggregations();
+        Terms brandAggs = aggregations.get("brandAggs");
+        brandAggs.getBuckets().forEach(b -> {
+            System.out.print(b.getKeyAsString() + "==" + b.getDocCount());
+            System.out.println();
+        });
     }
 }
