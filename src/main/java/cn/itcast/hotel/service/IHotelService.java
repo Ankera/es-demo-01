@@ -13,4 +13,6 @@ public interface IHotelService extends IService<Hotel> {
     PageResult searchPageInfo(RequestParams params) throws IOException;
 
     Map<String, List<String>> getFilters(RequestParams params);
+
+    List<String> getSuggestion(String key);
 }

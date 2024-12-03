@@ -3,10 +3,9 @@ package cn.itcast.hotel.controller;
 import cn.itcast.hotel.service.IHotelService;
 import cn.itcast.hotel.vo.PageResult;
 import cn.itcast.hotel.vo.RequestParams;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,5 +30,10 @@ public class HotelController {
     @RequestMapping("/filters")
     public Map<String, List<String>> getFilters(@RequestBody RequestParams params){
         return hotelService.getFilters(params);
+    }
+
+    @RequestMapping("/suggestion")
+    public List<String> getSuggestion(@RequestParam(value = "key", required = false) String key){
+        return hotelService.getSuggestion(key);
     }
 }

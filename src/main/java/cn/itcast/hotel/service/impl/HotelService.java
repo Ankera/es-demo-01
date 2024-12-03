@@ -28,6 +28,11 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.search.suggest.Suggest;
+import org.elasticsearch.search.suggest.SuggestBuilder;
+import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.elasticsearch.search.suggest.SuggestionBuilder;
+import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -173,4 +178,33 @@ public class HotelService extends ServiceImpl<HotelMapper, Hotel> implements IHo
         return infos;
     }
 
+    @Override
+    public List<String> getSuggestion(String key) {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().suggest(new SuggestBuilder().addSuggestion(
+                "hotelSuggestion",
+                SuggestBuilders.completionSuggestion("suggestion")
+                        .prefix(key)
+                        .skipDuplicates(true)
+                        .size(15)
+        ));
+
+        try {
+            SearchResponse response = restHighLevelClient.search(request, RequestOptions.DEFAULT);
+            Suggest suggest = response.getSuggest();
+            CompletionSuggestion hotelSuggestion = suggest.getSuggestion("hotelSuggestion");
+            if (hotelSuggestion == null && CollectionUtils.isEmpty(hotelSuggestion.getOptions())) {
+                return new ArrayList<>();
+            }
+            List<String> suggestions = new ArrayList<>();
+            List<CompletionSuggestion.Entry.Option> options = hotelSuggestion.getOptions();
+            for (CompletionSuggestion.Entry.Option option : options) {
+                String string = option.getText().string();
+                suggestions.add(string);
+            }
+            return suggestions;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
